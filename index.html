@@ -25,14 +25,14 @@
 </template>
 
 <script>
-const TWEAKS = /*EDITMODE-BEGIN*/{
+const TWEAKS = {
   "accent": "yellow",
   "intensity": "high",
   "glitch": true,
   "particles": true,
   "customCursor": true,
   "scanlines": true
-}/*EDITMODE-END*/;
+};
 </script>
 
 <style>
@@ -553,45 +553,7 @@ const TWEAKS = /*EDITMODE-BEGIN*/{
     position: fixed; inset: 0; pointer-events: none; z-index: 1;
   }
 
-  /* tweaks panel — só aparece quando host ativa, nunca interfere */
-  .tweaks-panel{
-    position: fixed; bottom: 24px; right: 24px; z-index: 9000;
-    background: rgba(17,17,19,0.97); border: 1px solid var(--accent);
-    padding: 18px; width: 260px;
-    display: none; /* hidden by default, only shown via host message */
-    font-family:'JetBrains Mono', monospace; font-size: 11px;
-    box-shadow: 0 0 30px rgba(0,240,255,0.15);
-    backdrop-filter: blur(8px);
-    pointer-events: auto;
-  }
-  .tweaks-panel.open{ display:block; }
-  /* on mobile, tweaks panel sits at bottom full-width */
-  @media (max-width: 640px){
-    .tweaks-panel{ left:12px; right:12px; bottom:12px; width:auto; }
-  }
-  .tweaks-panel h4{
-    font-family:'Bebas Neue', sans-serif; font-size: 20px;
-    color: var(--accent); letter-spacing: 0.1em; margin-bottom: 14px;
-    display:flex; justify-content:space-between; align-items:center;
-  }
-  .tweaks-panel .row{
-    margin-bottom: 12px; display:flex; flex-direction: column; gap:5px;
-  }
-  .tweaks-panel .row label{ color: var(--ink-dim); letter-spacing: 0.12em; text-transform:uppercase; font-size: 10px; }
-  .tweaks-panel .row select{
-    background: var(--bg); color: var(--ink); border: 1px solid var(--ink-dim);
-    padding: 7px; font-family:inherit; font-size: 11px;
-  }
-  .tweaks-panel .tog{
-    display:flex; justify-content:space-between; align-items:center;
-    padding: 5px 0; border-top: 1px dashed rgba(232,225,211,0.1);
-  }
-  .tweaks-panel .tog button{
-    background: var(--bg); color: var(--ink); border: 1px solid var(--ink-dim);
-    padding: 3px 10px; font-family:inherit; font-size:10px; letter-spacing: 0.1em;
-    text-transform: uppercase; cursor: pointer;
-  }
-  .tweaks-panel .tog button.on{ background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
 
   /* reveal on scroll */
   .reveal{ opacity:0; transform: translateY(20px); transition: opacity 0.8s, transform 0.8s; }
@@ -1311,37 +1273,7 @@ const TWEAKS = /*EDITMODE-BEGIN*/{
 <div class="cursor" id="cursor" style="transform: translate(864px, 1.57947e-166px) translate(-50%, -50%);"></div>
 <div class="cursor-dot" id="cursor-dot" style="transform: translate(864px, 0px) translate(-50%, -50%);"></div>
 
-<!-- TWEAKS PANEL -->
-<div class="tweaks-panel open" id="tweaks-panel">
-  <h4>
-    TWEAKS
-    <span style="color:var(--ink-dim); font-family:'JetBrains Mono',monospace; font-size:10px;">v2.6.1</span>
-  </h4>
-  <div class="row">
-    <label>Cor de acento</label>
-    <select id="tk-accent">
-      <option value="cyan">Ciano neon (default)</option>
-      <option value="yellow">Amarelo hazard</option>
-      <option value="red">Vermelho perigo</option>
-    </select>
-  </div>
-  <div class="tog">
-    <span>Glitch</span>
-    <button id="tk-glitch" class="on">ON</button>
-  </div>
-  <div class="tog">
-    <span>Partículas</span>
-    <button id="tk-particles" class="on">ON</button>
-  </div>
-  <div class="tog">
-    <span>Cursor custom</span>
-    <button id="tk-cursor" class="on">ON</button>
-  </div>
-  <div class="tog">
-    <span>Scanlines</span>
-    <button id="tk-scan" class="on">ON</button>
-  </div>
-</div>
+
 
 <script>
 /* ========== CLOCK + SESSION ========== */
@@ -1559,59 +1491,14 @@ const TWEAKS = /*EDITMODE-BEGIN*/{
   el.style.transition = 'opacity 0.2s';
 })();
 
-/* ========== TWEAKS / EDIT MODE ========== */
+/* ========== APPLY TWEAKS (fixed) ========== */
 (function(){
-  const panel = document.getElementById('tweaks-panel');
   const body = document.body;
-
-  // apply defaults from TWEAKS
-  function apply(t){
-    body.setAttribute('data-accent', t.accent || 'cyan');
-    body.setAttribute('data-glitch', String(t.glitch));
-    body.setAttribute('data-particles', String(t.particles));
-    body.setAttribute('data-cursor', String(t.customCursor));
-    body.setAttribute('data-scan', String(t.scanlines));
-
-    document.getElementById('tk-accent').value = t.accent || 'cyan';
-    for(const [k, btnId] of [['glitch','tk-glitch'],['particles','tk-particles'],['customCursor','tk-cursor'],['scanlines','tk-scan']]){
-      const btn = document.getElementById(btnId);
-      btn.classList.toggle('on', !!t[k]);
-      btn.textContent = t[k] ? 'ON' : 'OFF';
-    }
-  }
-  apply(TWEAKS);
-
-  function push(edits){
-    Object.assign(TWEAKS, edits);
-    try{ window.parent.postMessage({type:'__edit_mode_set_keys', edits}, '*'); }catch(e){}
-  }
-
-  document.getElementById('tk-accent').addEventListener('change', e=>{
-    body.setAttribute('data-accent', e.target.value);
-    push({accent: e.target.value});
-  });
-  function bindTog(btnId, key, attr){
-    const btn = document.getElementById(btnId);
-    btn.addEventListener('click', ()=>{
-      const nv = !(TWEAKS[key]);
-      btn.classList.toggle('on', nv);
-      btn.textContent = nv ? 'ON' : 'OFF';
-      body.setAttribute(attr, String(nv));
-      push({[key]: nv});
-    });
-  }
-  bindTog('tk-glitch','glitch','data-glitch');
-  bindTog('tk-particles','particles','data-particles');
-  bindTog('tk-cursor','customCursor','data-cursor');
-  bindTog('tk-scan','scanlines','data-scan');
-
-  // host protocol — register listener FIRST
-  window.addEventListener('message', (e)=>{
-    const d = e.data || {};
-    if(d.type === '__activate_edit_mode') panel.classList.add('open');
-    if(d.type === '__deactivate_edit_mode') panel.classList.remove('open');
-  });
-  try{ window.parent.postMessage({type:'__edit_mode_available'}, '*'); }catch(e){}
+  body.setAttribute('data-accent', TWEAKS.accent || 'yellow');
+  body.setAttribute('data-glitch', String(TWEAKS.glitch));
+  body.setAttribute('data-particles', String(TWEAKS.particles));
+  body.setAttribute('data-cursor', String(TWEAKS.customCursor));
+  body.setAttribute('data-scan', String(TWEAKS.scanlines));
 })();
 </script>
 
