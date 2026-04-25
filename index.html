@@ -1,0 +1,1619 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ISLAB.AI // Isaac Souza — O futuro com IA e Automações</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@300;400;500;700&amp;family=Bebas+Neue&amp;display=swap" rel="stylesheet">
+
+<template id="__bundler_thumbnail" data-bg-color="#0a0a0a">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#0a0a0a"></rect>
+    <g stroke="#00f0ff" stroke-width="2" fill="none" opacity="0.3">
+      <rect x="240" y="160" width="720" height="480"></rect>
+      <line x1="240" y1="240" x2="960" y2="240"></line>
+      <line x1="240" y1="560" x2="960" y2="560"></line>
+    </g>
+    <text x="600" y="440" text-anchor="middle" font-family="monospace" font-size="120" font-weight="700" fill="#00f0ff">ISLAB</text>
+    <text x="600" y="520" text-anchor="middle" font-family="monospace" font-size="36" fill="#fcee0a" letter-spacing="8">.AI</text>
+    <circle cx="280" cy="200" r="6" fill="#00f0ff"></circle>
+    <text x="300" y="208" font-family="monospace" font-size="18" fill="#8a8578">// LOADING</text>
+  </svg>
+</template>
+
+<script>
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "accent": "yellow",
+  "intensity": "high",
+  "glitch": true,
+  "particles": true,
+  "customCursor": true,
+  "scanlines": true
+}/*EDITMODE-END*/;
+</script>
+
+<style>
+  :root{
+    --bg: #0a0a0a;
+    --bg-elev: #111113;
+    --ink: #e8e1d3;
+    --ink-dim: #8a8578;
+    --ink-ghost: rgba(232,225,211,0.35);
+    --cyan: #00f0ff;
+    --yellow: #fcee0a;
+    --red: #ff2e3d;
+    --grid: rgba(252,238,10,0.08);
+    --scan: rgba(252,238,10,0.03);
+    --accent: var(--yellow);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ background: var(--bg); color: var(--ink); font-family: 'Space Grotesk', system-ui, sans-serif; overflow-x:hidden; }
+  body{
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 64px 64px;
+    background-position: 0 0;
+    min-height: 100vh;
+  }
+
+  /* scanlines overlay */
+  body[data-scan="true"]::before{
+    content:"";
+    position:fixed; inset:0;
+    background: repeating-linear-gradient(0deg, transparent 0 2px, var(--scan) 2px 3px);
+    pointer-events:none; z-index: 100; mix-blend-mode:screen;
+  }
+  /* vignette */
+  body::after{
+    content:""; position:fixed; inset:0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+    pointer-events:none; z-index:99;
+  }
+
+  /* custom cursor */
+  body[data-cursor="true"]{ cursor:none; }
+  body[data-cursor="true"] *{ cursor:none !important; }
+  .cursor{
+    position: fixed; top:0; left:0; width: 28px; height:28px;
+    border:1px solid var(--accent); pointer-events:none; z-index:9999;
+    transform: translate(-50%,-50%); mix-blend-mode: difference;
+    transition: width 0.15s ease, height 0.15s ease, background 0.15s ease;
+  }
+  .cursor::before, .cursor::after{
+    content:""; position:absolute; background: var(--accent);
+  }
+  .cursor::before{ left:50%; top:-6px; width:1px; height:8px; transform:translateX(-50%); }
+  .cursor::after{ left:50%; bottom:-6px; width:1px; height:8px; transform:translateX(-50%); }
+  .cursor-dot{
+    position:fixed; top:0; left:0; width:4px; height:4px; background:var(--accent);
+    pointer-events:none; z-index:9999; transform:translate(-50%,-50%);
+    border-radius: 50%;
+  }
+  .cursor.hovering{ width:56px; height:56px; background: rgba(0,240,255,0.08); }
+
+  /* typography helpers */
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  .display{ font-family:'Bebas Neue', 'Space Grotesk', sans-serif; letter-spacing: 0.02em; }
+  .hl{ color: var(--accent); }
+  .dim{ color: var(--ink-dim); }
+
+  /* HUD top bar */
+  .hud{
+    position: fixed; top:0; left:0; right:0; z-index: 50;
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 16px 24px; font-family:'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    backdrop-filter: blur(6px);
+    background: linear-gradient(to bottom, rgba(10,10,10,0.9), rgba(10,10,10,0));
+    border-bottom: 1px solid rgba(232,225,211,0.08);
+  }
+  .hud .brand{ display:flex; align-items:center; gap:10px; font-weight:700; }
+  .hud .brand .dot{ width:8px; height:8px; background: var(--accent); border-radius:50%;
+    box-shadow: 0 0 12px var(--accent); animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .hud .nav{ display:flex; gap: 28px; }
+  .hud .nav a{ color: var(--ink); text-decoration: none; opacity:0.7; transition: all 0.2s; position:relative; }
+  .hud .nav a:hover{ color: var(--accent); opacity:1; }
+  .hud .nav a::before{ content: "[ "; opacity:0; transition: 0.15s; color: var(--accent); }
+  .hud .nav a::after{ content: " ]"; opacity:0; transition: 0.15s; color: var(--accent); }
+  .hud .nav a:hover::before, .hud .nav a:hover::after{ opacity:1; }
+  .hud .meta{ display:flex; gap:18px; color: var(--ink-dim); }
+  .hud .meta .val{ color: var(--accent); }
+
+  /* side HUD */
+  .hud-side{
+    position: fixed; left: 16px; top: 50%; transform: translateY(-50%);
+    font-family:'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.15em;
+    writing-mode: vertical-rl; color: var(--ink-dim); z-index: 40;
+    text-transform:uppercase;
+  }
+  .hud-side .hl{ color: var(--accent); }
+  .hud-side-right{
+    position: fixed; right: 16px; top: 50%; transform: translateY(-50%) rotate(180deg);
+    font-family:'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.15em;
+    writing-mode: vertical-rl; color: var(--ink-dim); z-index: 40;
+    text-transform:uppercase;
+  }
+
+  /* bottom status bar */
+  .status{
+    position: fixed; bottom:0; left:0; right:0; z-index: 50;
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 10px 24px; font-family:'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--ink-dim);
+    background: linear-gradient(to top, rgba(10,10,10,0.9), rgba(10,10,10,0));
+    border-top: 1px solid rgba(232,225,211,0.08);
+  }
+  .status .ticker{ color: var(--accent); }
+
+  /* ===== HERO ===== */
+  section{ position:relative; }
+  .hero{
+    min-height: 100vh; display:flex; align-items:center; justify-content:center;
+    padding: 120px 48px 80px; position:relative; overflow:hidden;
+  }
+  .hero-grid{
+    position:absolute; inset:0; z-index:0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(0,240,255,0.12), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(252,238,10,0.08), transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(255,46,61,0.06), transparent 50%);
+  }
+  .hero-inner{ position:relative; z-index:2; width:100%; max-width: 1600px; }
+  .hero-tag{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:'JetBrains Mono', monospace; font-size: 12px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent);
+    padding: 6px 14px; border: 1px solid var(--accent);
+    background: rgba(0,240,255,0.05);
+    margin-bottom: 40px;
+  }
+  .hero-tag .blink{ animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .hero-title{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: clamp(96px, 20vw, 360px);
+    line-height: 0.82; letter-spacing: -0.01em;
+    font-weight: 400; color: var(--ink);
+    position: relative; display: block;
+  }
+  .hero-title .row{ display:block; overflow: hidden; }
+  .hero-title .stroke{
+    -webkit-text-stroke: 2px var(--ink);
+    color: transparent;
+  }
+  .hero-title .fill-accent{ color: var(--accent); }
+  .hero-title .dot-sep{ color: var(--accent); }
+
+  /* author signature block above title */
+  .hero-author{
+    display:flex; align-items:center; gap: 14px;
+    margin-bottom: 22px;
+    font-family:'JetBrains Mono', monospace; font-size: 12px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim);
+  }
+  .hero-author .bar{ width: 40px; height: 1px; background: var(--accent); }
+  .hero-author .name{ color: var(--ink); }
+  .hero-author .by{ color: var(--ink-dim); }
+
+  /* subtitle row under hero title */
+  .hero-kicker{
+    display:flex; align-items:center; gap: 18px; flex-wrap: wrap;
+    margin-top: 28px;
+    font-family:'JetBrains Mono', monospace; font-size: 13px;
+    color: var(--ink); letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .hero-kicker .chip{
+    padding: 6px 12px; border: 1px solid var(--ink-dim); color: var(--ink-dim);
+  }
+  .hero-kicker .chip.active{ border-color: var(--accent); color: var(--accent); }
+  .hero-kicker .caret{ color: var(--accent); }
+
+  /* glitch effect */
+  .glitch{ position:relative; display:inline-block; }
+  .glitch::before, .glitch::after{
+    content: attr(data-text); position:absolute; top:0; left:0;
+    width:100%; height:100%; pointer-events:none;
+  }
+  body[data-glitch="true"] .glitch::before{
+    color: var(--accent); z-index:-1;
+    animation: glitch-x 4s infinite;
+    clip-path: polygon(0 0, 100% 0, 100% 40%, 0 40%);
+    opacity: 0;
+  }
+  body[data-glitch="true"] .glitch::after{
+    color: var(--red); z-index:-2;
+    animation: glitch-y 4.5s infinite;
+    clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+    opacity: 0;
+  }
+  body[data-glitch="true"] .glitch:hover::before{ opacity: 0.8; animation-duration: 2.6s; }
+  body[data-glitch="true"] .glitch:hover::after{ opacity: 0.7; animation-duration: 3.1s; }
+  @keyframes glitch-x {
+    0%, 92%, 100% { transform: translate(0); opacity: 0; }
+    93% { transform: translate(-4px, 2px); opacity: 0.8; }
+    95% { transform: translate(3px, -2px); opacity: 0.8; }
+    97% { transform: translate(-2px, 1px); opacity: 0.6; }
+    98% { opacity: 0; }
+  }
+  @keyframes glitch-y {
+    0%, 94%, 100% { transform: translate(0); opacity: 0; }
+    95% { transform: translate(3px, -3px); opacity: 0.7; }
+    97% { transform: translate(-3px, 2px); opacity: 0.7; }
+    99% { transform: translate(1px, -1px); opacity: 0.5; }
+  }
+
+  .hero-meta{
+    margin-top: 48px;
+    display:grid; grid-template-columns: 2fr 1fr 1fr; gap: 32px;
+    align-items:start;
+  }
+  .hero-sub{
+    font-family:'Space Grotesk', sans-serif; font-size: 20px; line-height:1.4;
+    color: var(--ink); max-width: 560px;
+  }
+  .hero-sub strong{ color: var(--accent); font-weight:500; }
+  .hero-stat{
+    font-family:'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--ink-dim); letter-spacing:0.1em; text-transform:uppercase;
+    border-left: 2px solid var(--accent); padding-left: 14px;
+  }
+  .hero-stat .v{ font-family:'Bebas Neue', sans-serif; font-size: 44px; color: var(--ink); letter-spacing: 0; line-height:1; margin-top: 6px; display:block; }
+  .hero-stat .v .hl{ color: var(--accent); }
+
+  /* terminal card */
+  .terminal{
+    position: absolute; right: 48px; top: 140px;
+    width: 420px; background: rgba(10,10,10,0.92);
+    border: 1px solid var(--accent);
+    font-family:'JetBrains Mono', monospace; font-size: 12px;
+    box-shadow: 0 0 0 1px rgba(0,240,255,0.2), 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(0,240,255,0.15);
+    z-index: 3;
+  }
+  .terminal-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 8px 14px; border-bottom: 1px solid rgba(0,240,255,0.2);
+    color: var(--ink-dim); font-size: 10px; letter-spacing:0.15em;
+    text-transform:uppercase;
+  }
+  .terminal-head .dots{ display:flex; gap:6px; }
+  .terminal-head .dots span{ width:8px; height:8px; background: var(--accent); opacity:0.6; }
+  .terminal-head .dots span:nth-child(2){ background: var(--yellow); }
+  .terminal-head .dots span:nth-child(3){ background: var(--red); }
+  .terminal-body{ padding: 16px; min-height: 220px; color: var(--ink); }
+  .terminal-body .line{ margin-bottom: 4px; white-space:pre-wrap; word-break:break-all; }
+  .terminal-body .prompt{ color: var(--accent); }
+  .terminal-body .ok{ color: var(--yellow); }
+  .terminal-body .err{ color: var(--red); }
+  .cursor-blink::after{
+    content: "▊"; color: var(--accent);
+    animation: blink 1s step-end infinite;
+  }
+
+  .hero-cta{
+    margin-top: 56px; display:flex; gap: 16px; flex-wrap: wrap; align-items:center;
+  }
+  .btn{
+    display:inline-flex; align-items:center; gap: 14px;
+    padding: 18px 28px; font-family:'JetBrains Mono', monospace;
+    font-size: 13px; letter-spacing: 0.18em; text-transform:uppercase;
+    text-decoration:none; font-weight: 700; position:relative;
+    transition: all 0.2s; border: none;
+  }
+  .btn-primary{
+    background: var(--accent); color: var(--bg);
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  }
+  .btn-primary:hover{
+    background: var(--yellow);
+    box-shadow: 0 0 30px var(--accent);
+    transform: translate(-2px, -2px);
+  }
+  .btn-ghost{
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--ink-dim);
+  }
+  .btn-ghost:hover{ border-color: var(--accent); color: var(--accent); }
+  .btn .arrow{ transition: transform 0.2s; }
+  .btn:hover .arrow{ transform: translateX(4px); }
+
+  /* section headers */
+  .section{
+    padding: 140px 48px; position:relative; max-width: 1600px; margin: 0 auto;
+  }
+  .section-label{
+    display:flex; align-items:center; gap: 14px;
+    font-family:'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--accent); letter-spacing: 0.2em; text-transform:uppercase;
+    margin-bottom: 24px;
+  }
+  .section-label::before{ content:""; width: 40px; height:1px; background: var(--accent); }
+  .section-title{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: clamp(60px, 9vw, 140px); line-height: 0.9; letter-spacing: -0.01em;
+    margin-bottom: 80px;
+  }
+  .section-title .stroke{ -webkit-text-stroke: 2px var(--ink); color: transparent; }
+  .section-title .hl{ color: var(--accent); }
+
+  /* services grid */
+  .services{ display:grid; grid-template-columns: repeat(12, 1fr); gap: 0; border-top:1px solid rgba(232,225,211,0.12); }
+  .service{
+    grid-column: span 4; padding: 40px 32px; border-bottom: 1px solid rgba(232,225,211,0.12);
+    border-right: 1px solid rgba(232,225,211,0.12); position:relative;
+    transition: all 0.25s ease; cursor: none; min-height: 300px;
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .service:nth-child(3n){ border-right: none; }
+  .service:hover{ background: rgba(0,240,255,0.04); }
+  .service:hover .service-num{ color: var(--accent); }
+  .service:hover .service-title{ color: var(--accent); }
+  .service-head{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 32px; }
+  .service-num{
+    font-family:'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--ink-dim); letter-spacing: 0.15em; transition: 0.2s;
+  }
+  .service-tag{
+    font-family:'JetBrains Mono', monospace; font-size: 10px;
+    padding: 3px 8px; border: 1px solid var(--ink-dim); color: var(--ink-dim);
+    letter-spacing: 0.12em; text-transform:uppercase;
+  }
+  .service-title{
+    font-family:'Bebas Neue', sans-serif; font-size: 42px; line-height: 0.95;
+    margin-bottom: 16px; letter-spacing: 0.01em; transition: 0.2s;
+  }
+  .service-desc{
+    font-size: 14px; line-height: 1.55; color: var(--ink-dim);
+    font-family:'Space Grotesk', sans-serif;
+  }
+  .service-link{
+    margin-top: 24px; font-family:'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--accent); letter-spacing: 0.15em;
+    text-transform: uppercase; display:flex; align-items:center; gap: 8px;
+  }
+
+  /* stack marquee */
+  .marquee{
+    border-top: 1px solid var(--accent); border-bottom: 1px solid var(--accent);
+    overflow: hidden; white-space: nowrap; padding: 24px 0;
+    background: rgba(0,240,255,0.03);
+    margin: 80px 0;
+  }
+  .marquee-track{ display:inline-block; animation: marquee 40s linear infinite; }
+  .marquee span{
+    font-family:'Bebas Neue', sans-serif; font-size: 56px;
+    margin: 0 32px; color: var(--ink);
+  }
+  .marquee span.alt{ color: var(--accent); }
+  .marquee span.stroke{ -webkit-text-stroke: 1.5px var(--ink); color: transparent; }
+  .marquee span.sep{ color: var(--red); }
+  @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  /* portfolio */
+  .projects{ display:grid; grid-template-columns: repeat(12, 1fr); gap: 2px; background: rgba(232,225,211,0.06); border: 1px solid rgba(232,225,211,0.06); }
+  .project{
+    grid-column: span 6; background: var(--bg); padding: 40px; position: relative;
+    min-height: 420px; display:flex; flex-direction:column; justify-content:space-between;
+    overflow:hidden; transition: 0.3s;
+  }
+  .project.wide{ grid-column: span 12; min-height: 280px; }
+  .project::before{
+    content:""; position:absolute; inset:0;
+    background:
+      linear-gradient(135deg, transparent 49.5%, rgba(232,225,211,0.04) 49.5%, rgba(232,225,211,0.04) 50%, transparent 50%);
+    background-size: 8px 8px; opacity: 0.6;
+  }
+  .project:hover{ background: #0d0d0f; }
+  .project:hover .project-title{ color: var(--accent); }
+  .project-meta{
+    display:flex; justify-content:space-between; position:relative; z-index:2;
+    font-family:'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--ink-dim); letter-spacing: 0.12em; text-transform:uppercase;
+  }
+  .project-meta .status-ok{ color: var(--accent); display:flex; align-items:center; gap:6px; }
+  .project-meta .status-ok::before{ content:""; width:6px; height:6px; background: var(--accent); border-radius:50%; box-shadow: 0 0 8px var(--accent); }
+  .project-title{
+    font-family:'Bebas Neue', sans-serif; font-size: 72px; line-height: 0.9;
+    margin: 40px 0 16px; position: relative; z-index: 2; transition: 0.2s;
+  }
+  .project.wide .project-title{ font-size: 110px; }
+  .project-desc{
+    max-width: 520px; color: var(--ink-dim); font-size: 14px; line-height: 1.6;
+    position:relative; z-index:2;
+  }
+  .project-tags{
+    display:flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; position:relative; z-index:2;
+  }
+  .project-tags span{
+    font-family:'JetBrains Mono', monospace; font-size: 10px;
+    padding: 3px 8px; border: 1px solid var(--ink-dim); color: var(--ink-dim);
+    letter-spacing: 0.1em; text-transform:uppercase;
+  }
+
+  /* process */
+  .process{
+    display:grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    border-top: 1px solid rgba(232,225,211,0.12);
+    border-left: 1px solid rgba(232,225,211,0.12);
+  }
+  .step{
+    padding: 40px 32px; border-right: 1px solid rgba(232,225,211,0.12);
+    border-bottom: 1px solid rgba(232,225,211,0.12);
+    min-height: 260px; position:relative; transition: 0.3s;
+  }
+  .step:hover{ background: rgba(0,240,255,0.04); }
+  .step-num{
+    font-family:'Bebas Neue', sans-serif; font-size: 80px;
+    color: transparent; -webkit-text-stroke: 1.5px var(--accent);
+    line-height: 1; margin-bottom: 20px;
+  }
+  .step-title{
+    font-family:'Bebas Neue', sans-serif; font-size: 28px;
+    margin-bottom: 12px; letter-spacing: 0.02em;
+  }
+  .step-desc{ font-size: 13px; line-height: 1.55; color: var(--ink-dim); }
+
+  /* about */
+  .about{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items:start;
+  }
+  .about-text p{
+    font-size: 18px; line-height: 1.6; margin-bottom: 20px; color: var(--ink);
+    max-width: 560px;
+  }
+  .about-text strong{ color: var(--accent); font-weight: 500; }
+  .about-card{
+    background: var(--bg-elev); border: 1px solid var(--accent);
+    padding: 32px; position: relative;
+    box-shadow: 0 0 40px rgba(0,240,255,0.1);
+  }
+  .about-card::before{
+    content: "// OPERATOR.DOSSIER";
+    position: absolute; top: -10px; left: 20px; background: var(--bg);
+    padding: 0 10px; font-family:'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--accent); letter-spacing: 0.2em;
+  }
+  .dossier-row{
+    display:grid; grid-template-columns: 120px 1fr; gap:16px;
+    padding: 12px 0; border-bottom: 1px dashed rgba(232,225,211,0.12);
+    font-family:'JetBrains Mono', monospace; font-size: 12px;
+  }
+  .dossier-row:last-child{ border-bottom: none; }
+  .dossier-row .k{ color: var(--ink-dim); letter-spacing: 0.1em; text-transform:uppercase; }
+  .dossier-row .v{ color: var(--ink); }
+  .dossier-row .v .hl{ color: var(--accent); }
+  .avatar{
+    margin-bottom: 24px;
+    position:relative; overflow: hidden;
+    border: 1px solid var(--accent);
+    box-shadow: 0 0 40px rgba(0,240,255,0.15), inset 0 0 60px rgba(0,0,0,0.4);
+  }
+  .avatar img{
+    width: 100%; display: block;
+    filter: saturate(0.85) contrast(1.05);
+    transition: filter 0.4s;
+  }
+  .avatar:hover img{ filter: saturate(1.1) contrast(1.1); }
+  .avatar::after{
+    content:""; position:absolute; inset:0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.7) 100%);
+    pointer-events:none;
+  }
+  .avatar-label{
+    position:absolute; bottom:12px; left:14px; z-index:2;
+    font-family:'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--accent); letter-spacing: 0.2em; text-transform:uppercase;
+  }
+
+  /* final CTA */
+  .final{
+    text-align:center; padding: 180px 48px 140px; position:relative;
+  }
+  .final-title{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 14vw, 220px); line-height: 0.85;
+    margin-bottom: 40px; letter-spacing: -0.01em;
+  }
+  .final-title .stroke{ -webkit-text-stroke: 2px var(--ink); color: transparent; }
+  .final-title .hl{ color: var(--accent); }
+  .final-sub{
+    font-size: 18px; color: var(--ink-dim); max-width: 520px; margin: 0 auto 48px;
+    line-height: 1.6;
+  }
+  .big-btn{
+    display:inline-flex; align-items:center; gap: 20px;
+    padding: 28px 48px; background: var(--accent); color: var(--bg);
+    font-family:'Bebas Neue', sans-serif; font-size: 32px;
+    letter-spacing: 0.06em; text-decoration: none; font-weight: 400;
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+    transition: 0.2s; position: relative;
+  }
+  .big-btn:hover{ background: var(--yellow); transform: translate(-3px, -3px);
+    box-shadow: 0 0 60px var(--accent); }
+  .big-btn .icon{ font-size: 28px; }
+
+  /* footer */
+  footer{
+    padding: 60px 48px 80px; border-top: 1px solid rgba(232,225,211,0.12);
+    display:flex; justify-content:space-between; flex-wrap: wrap; gap: 24px;
+    font-family:'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--ink-dim); letter-spacing: 0.12em; text-transform:uppercase;
+  }
+  footer .hl{ color: var(--accent); }
+
+  /* particles canvas */
+  #particles{
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  }
+
+  /* tweaks panel — só aparece quando host ativa, nunca interfere */
+  .tweaks-panel{
+    position: fixed; bottom: 24px; right: 24px; z-index: 9000;
+    background: rgba(17,17,19,0.97); border: 1px solid var(--accent);
+    padding: 18px; width: 260px;
+    display: none; /* hidden by default, only shown via host message */
+    font-family:'JetBrains Mono', monospace; font-size: 11px;
+    box-shadow: 0 0 30px rgba(0,240,255,0.15);
+    backdrop-filter: blur(8px);
+    pointer-events: auto;
+  }
+  .tweaks-panel.open{ display:block; }
+  /* on mobile, tweaks panel sits at bottom full-width */
+  @media (max-width: 640px){
+    .tweaks-panel{ left:12px; right:12px; bottom:12px; width:auto; }
+  }
+  .tweaks-panel h4{
+    font-family:'Bebas Neue', sans-serif; font-size: 20px;
+    color: var(--accent); letter-spacing: 0.1em; margin-bottom: 14px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .tweaks-panel .row{
+    margin-bottom: 12px; display:flex; flex-direction: column; gap:5px;
+  }
+  .tweaks-panel .row label{ color: var(--ink-dim); letter-spacing: 0.12em; text-transform:uppercase; font-size: 10px; }
+  .tweaks-panel .row select{
+    background: var(--bg); color: var(--ink); border: 1px solid var(--ink-dim);
+    padding: 7px; font-family:inherit; font-size: 11px;
+  }
+  .tweaks-panel .tog{
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 5px 0; border-top: 1px dashed rgba(232,225,211,0.1);
+  }
+  .tweaks-panel .tog button{
+    background: var(--bg); color: var(--ink); border: 1px solid var(--ink-dim);
+    padding: 3px 10px; font-family:inherit; font-size:10px; letter-spacing: 0.1em;
+    text-transform: uppercase; cursor: pointer;
+  }
+  .tweaks-panel .tog button.on{ background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+  /* reveal on scroll */
+  .reveal{ opacity:0; transform: translateY(20px); transition: opacity 0.8s, transform 0.8s; }
+  .reveal.in{ opacity:1; transform: translateY(0); }
+
+  @media (max-width: 1100px){
+    .terminal{ position:static; width:100%; margin-top:40px; }
+    .hero-meta{ grid-template-columns: 1fr; }
+    .service{ grid-column: span 6; }
+    .service:nth-child(3n){ border-right: 1px solid rgba(232,225,211,0.12); }
+    .service:nth-child(2n){ border-right: none; }
+    .project{ grid-column: span 12; }
+    .about{ grid-template-columns: 1fr; gap: 40px; }
+    .process{ grid-template-columns: repeat(2, 1fr); }
+    .hud-side, .hud-side-right{ display:none; }
+    .section-title{ font-size: clamp(48px, 8vw, 100px); margin-bottom: 48px; }
+  }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 768px){
+    /* cursor off */
+    body[data-cursor="true"]{ cursor: auto; }
+    body[data-cursor="true"] *{ cursor: auto !important; }
+    .cursor, .cursor-dot{ display:none; }
+
+    /* HUD: apenas marca */
+    .hud{ padding: 12px 16px; }
+    .hud .nav{ display:none; }
+    .hud .meta{ display:none; }
+    .hud .brand .dim{ display:none; }
+    .hud-side, .hud-side-right{ display:none; }
+
+    /* status bar mínima */
+    .status{ padding: 7px 16px; font-size: 9px; }
+    .status span:first-child, .status span:last-child{ display:none; }
+
+    /* hero: layout vertical limpo */
+    .hero{
+      padding: 90px 24px 56px;
+      min-height: 100svh;
+      align-items: flex-start;
+      overflow: hidden;
+    }
+    .hero-inner{ width: 100%; }
+
+    /* esconde elementos pesados no mobile */
+    .terminal{ display:none; }
+    .hero-stat{ display:none; }
+
+    /* tag menor */
+    .hero-tag{
+      font-size: 9px; letter-spacing: 0.1em;
+      padding: 4px 10px; margin-bottom: 20px;
+    }
+
+    /* assinatura */
+    .hero-author{
+      font-size: 9px; gap: 6px; margin-bottom: 14px;
+    }
+    .hero-author .bar{ width: 18px; }
+    .hero-author .by{ display:none; }
+
+    /* título: cabe na tela com overflow controlado */
+    .hero-title{
+      font-size: clamp(72px, 22vw, 120px);
+      line-height: 0.88;
+      overflow: visible;
+      word-break: keep-all;
+    }
+
+    /* kicker simplificado */
+    .hero-kicker{
+      font-size: 10px; gap: 8px; margin-top: 18px; flex-wrap: wrap;
+    }
+    .hero-kicker .chip{ padding: 4px 8px; font-size: 10px; }
+    .hero-kicker > span:last-child{ display: none; }
+
+    /* subtexto */
+    .hero-meta{ grid-template-columns: 1fr; gap: 0; margin-top: 24px; }
+    .hero-sub{ font-size: 14px; line-height: 1.55; max-width: 100%; }
+
+    /* CTAs empilhados */
+    .hero-cta{ flex-direction:column; align-items:stretch; margin-top: 28px; gap: 10px; }
+    .btn{ justify-content:center; padding: 15px 20px; font-size: 11px; letter-spacing: 0.14em; }
+
+    /* seções */
+    .section{ padding: 60px 20px; }
+    .section-title{
+      font-size: clamp(42px, 12vw, 72px);
+      margin-bottom: 28px; line-height: 0.9;
+    }
+    .section-label{ font-size: 9px; gap: 8px; margin-bottom: 14px; }
+    .section-label::before{ width: 20px; }
+
+    /* serviços: 1 coluna */
+    .services{ border-top: none; }
+    .service{
+      grid-column: span 12 !important;
+      border-right: none !important;
+      padding: 24px 20px; min-height: auto;
+    }
+    .service-title{ font-size: 32px; }
+
+    /* stack: 2 colunas */
+    #stack-grid{ grid-template-columns: repeat(2,1fr) !important; }
+
+    /* projetos */
+    .project{ grid-column: span 12 !important; padding: 24px 20px; min-height: auto; }
+    .project-title{ font-size: 40px; margin: 20px 0 10px; }
+    .project.wide .project-title{ font-size: 48px; }
+
+    /* processo: 1 coluna */
+    .process{ grid-template-columns: 1fr; }
+    .step{ min-height: auto; padding: 22px 20px; }
+    .step-num{ font-size: 48px; margin-bottom: 12px; }
+
+    /* sobre */
+    .about{ grid-template-columns: 1fr; gap: 28px; }
+    .about-text p{ font-size: 14px; }
+    .about-card{ padding: 18px; }
+    .dossier-row{ grid-template-columns: 86px 1fr; font-size: 11px; padding: 9px 0; gap: 10px; }
+
+    /* CTA final */
+    .final{ padding: 72px 20px 56px; }
+    .final-title{ font-size: clamp(60px, 17vw, 100px); }
+    .final-sub{ font-size: 14px; }
+    .big-btn{
+      padding: 18px 24px; font-size: 20px;
+      width: 100%; justify-content: center;
+      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+    }
+
+    /* footer */
+    footer{ padding: 36px 20px 56px; flex-direction:column; gap: 8px; font-size: 10px; }
+
+    /* marquee */
+    .marquee{ padding: 14px 0; margin: 48px 0; }
+    .marquee span{ font-size: 34px; margin: 0 18px; }
+  }
+</style>
+<link id="gfont-Rubik" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap"></head>
+<body data-accent="yellow" data-glitch="true" data-scan="true" data-cursor="true" data-particles="true" data-cc-id="cc-1" style="cursor: crosshair; background-color: rgb(10, 10, 10); font-family: &quot;Space Grotesk&quot;;">
+
+<canvas id="particles" width="966" height="550"></canvas>
+
+<!-- TOP HUD -->
+<header class="hud" data-screen-label="00 HUD">
+  <div class="brand">
+    <span class="dot"></span>
+    <span>ISLAB<span style="color:var(--accent)">.AI</span></span>
+    <span class="dim" style="margin-left: 14px; font-weight: 400;">v2.6.1</span>
+  </div>
+  <nav class="nav">
+    <a href="#services">Serviços</a>
+    <a href="#stack">Stack</a>
+    <a href="#projects">Portfólio</a>
+    <a href="#process">Processo</a>
+    <a href="#about">Dossiê</a>
+    <a href="#contact">Contato</a>
+  </nav>
+  <div class="meta">
+    <span>SYS: <span class="val" id="sys-time">13:57:06</span></span>
+    <span>STATUS: <span class="val">ONLINE</span></span>
+  </div>
+</header>
+
+<aside class="hud-side">// LAT -23.5505 // LONG -46.6333 // NODE: <span class="hl">BR-SP</span></aside>
+<aside class="hud-side-right">ISLAB.AI // ISAAC SOUZA // <span style="color:var(--accent)">OPERATOR 01</span></aside>
+
+<!-- HERO -->
+<section class="hero" data-screen-label="01 Hero">
+  <div class="hero-grid"></div>
+
+  <div class="hero-inner">
+    <div class="hero-tag">
+      <span class="blink">●</span>
+      <span>NEW TRANSMISSION INCOMING // 2026.04.17</span>
+    </div>
+
+    <div class="hero-author">
+      <span class="bar"></span>
+      <span class="by">por</span>
+      <span class="name">ISAAC SOUZA</span>
+      <span class="by">// FOUNDER &amp; OPERATOR 01</span>
+    </div>
+
+    <h1 class="hero-title">
+      <span class="row"><span class="glitch" data-text="ISLAB">ISLAB</span><span class="dot-sep">.</span><span class="stroke glitch" data-text="AI">AI</span></span>
+    </h1>
+
+    <div class="hero-kicker">
+      <span class="caret">&gt;</span>
+      <span class="chip active">IA</span>
+      <span class="chip">AUTOMAÇÕES</span>
+      <span class="chip">VIBE CODING</span>
+      <span style="color: var(--ink-dim);">// O futuro, sem esperar por ele.</span>
+    </div>
+
+    <div class="hero-meta">
+      <p class="hero-sub">
+        Construo o futuro pra quem não quer esperar por ele.
+        <strong>IA, automações e vibe coding</strong> — de protótipo a sistema em produção,
+        com velocidade de hacker e acabamento de estúdio.
+      </p>
+      <div class="hero-stat">
+        [ IMPACTO ]
+        <span class="v">+<span class="hl">84</span></span>
+        sistemas entregues
+      </div>
+      <div class="hero-stat">
+        [ UPTIME ]
+        <span class="v"><span class="hl">99.9</span>%</span>
+        do código em produção
+      </div>
+    </div>
+
+    <div class="hero-cta">
+    <a href="https://wa.me/5528992757237?text=Oi%20Isaac!%20Vi%20sua%20landing%20da%20ISLAB.AI%20e%20quero%20conversar." class="btn btn-primary" target="_blank" rel="noopener">
+        <span>INICIAR CONTATO</span>
+        <span class="arrow">→</span>
+      </a>
+      <a href="#projects" class="btn btn-ghost">
+        <span>VER OPERAÇÕES</span>
+        <span class="arrow">↓</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Terminal -->
+  <div class="terminal" id="terminal" aria-hidden="true">
+    <div class="terminal-head">
+      <span>islab@ops:~/boot</span>
+      <span class="dots"><span></span><span></span><span></span></span>
+    </div>
+    <div class="terminal-body" id="term-body"><div class="line prompt">$ islab --init</div><div class="line ">Booting ISLAB.AI runtime v2.6.1 ...</div><div class="line ok">[OK] modules loaded: ai, automation, vibe-code</div><div class="line prompt">$ scan --services</div><div class="line ">&gt; 06 services detected</div><div class="line ok">[OK] ready for deployment</div><div class="line prompt">$ connect --operator isaac</div><div class="line ">authenticating ...</div><div class="line ok">[AUTH] welcome, operator.</div><div class="line prompt">$ await client --signal strong</div><div class="line cursor-blink">listening on channel <span style="color:var(--yellow)">#whatsapp</span> ...</div></div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span class="alt">AUTOMAÇÃO</span><span class="sep">✦</span>
+    <span class="stroke">IA APLICADA</span><span class="sep">✦</span>
+    <span>VIBE CODING</span><span class="sep">✦</span>
+    <span class="alt">LANDING PAGES</span><span class="sep">✦</span>
+    <span class="stroke">AGENTES</span><span class="sep">✦</span>
+    <span>INTEGRAÇÕES</span><span class="sep">✦</span>
+    <span class="alt">AUTOMAÇÃO</span><span class="sep">✦</span>
+    <span class="stroke">IA APLICADA</span><span class="sep">✦</span>
+    <span>VIBE CODING</span><span class="sep">✦</span>
+    <span class="alt">LANDING PAGES</span><span class="sep">✦</span>
+    <span class="stroke">AGENTES</span><span class="sep">✦</span>
+    <span>INTEGRAÇÕES</span><span class="sep">✦</span>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section class="section" id="services" data-screen-label="02 Services">
+  <div class="section-label reveal">
+    <span>[ 02 / OPERAÇÕES ]</span>
+    <span class="dim">// SERVIÇOS DISPONÍVEIS</span>
+  </div>
+  <h2 class="section-title reveal">
+    O QUE EU<br><span class="hl">CONSTRUO</span> <span class="stroke">PRA VOCÊ</span>
+  </h2>
+
+  <div class="services">
+    <article class="service reveal">
+      <div>
+        <div class="service-head">
+          <span class="service-num">// 01</span>
+          <span class="service-tag">AI · LLM</span>
+        </div>
+        <h3 class="service-title">AGENTES DE IA SOB MEDIDA</h3>
+        <p class="service-desc">
+          Assistentes que atendem clientes, qualificam leads e resolvem tickets 24/7.
+          Conectados ao seu CRM, WhatsApp, e-mail e base de conhecimento.
+        </p>
+      </div>
+      <div class="service-link">OP.EXECUTAR →</div>
+    </article>
+
+    <article class="service reveal">
+      <div>
+        <div class="service-head">
+          <span class="service-num">// 02</span>
+          <span class="service-tag">FLOW · N8N</span>
+        </div>
+        <h3 class="service-title">AUTOMAÇÃO DE PROCESSOS</h3>
+        <p class="service-desc">
+          Fluxos que eliminam trabalho repetitivo. Integro APIs, webhooks e
+          ferramentas que já existem na sua operação — sem reinventar a roda.
+        </p>
+      </div>
+      <div class="service-link">OP.EXECUTAR →</div>
+    </article>
+
+    <article class="service reveal">
+      <div>
+        <div class="service-head">
+          <span class="service-num">// 03</span>
+          <span class="service-tag">WEB · CRO</span>
+        </div>
+        <h3 class="service-title">LANDING PAGES QUE VENDEM</h3>
+        <p class="service-desc">
+          Páginas rápidas, com copy afiada e rastreamento correto. Construídas pra
+          converter — não pra parecer bonitinha no portfólio.
+        </p>
+      </div>
+      <div class="service-link">OP.EXECUTAR →</div>
+    </article>
+
+    <article class="service reveal">
+      <div>
+        <div class="service-head">
+          <span class="service-num">// 04</span>
+          <span class="service-tag">VIBE · CODE</span>
+        </div>
+        <h3 class="service-title">VIBE CODING / PROTOTIPAGEM</h3>
+        <p class="service-desc">
+          Ideia na cabeça de manhã, protótipo funcional à noite. Sprints rápidos pra
+          validar produto antes de gastar grana com squad inteiro.
+        </p>
+      </div>
+      <div class="service-link">OP.EXECUTAR →</div>
+    </article>
+
+    <article class="service reveal">
+      <div>
+        <div class="service-head">
+          <span class="service-num">// 05</span>
+          <span class="service-tag">API · HOOK</span>
+        </div>
+        <h3 class="service-title">INTEGRAÇÕES SOB DEMANDA</h3>
+        <p class="service-desc">
+          Seus sistemas conversando entre si. CRM, ERP, WhatsApp, Stripe, planilhas —
+          tudo sincronizado sem depender de ninguém apertar botão.
+        </p>
+      </div>
+      <div class="service-link">OP.EXECUTAR →</div>
+    </article>
+
+    <article class="service reveal">
+      <div>
+        <div class="service-head">
+          <span class="service-num">// 06</span>
+          <span class="service-tag">TECH · ADVISORY</span>
+        </div>
+        <h3 class="service-title">CONSULTORIA ESTRATÉGICA</h3>
+        <p class="service-desc">
+          Mapeio gargalos, identifico onde IA e automação dão retorno real e
+          desenho o roadmap técnico com você. Sem bullshit, sem venda de fumaça.
+        </p>
+      </div>
+      <div class="service-link">OP.EXECUTAR →</div>
+    </article>
+  </div>
+</section>
+
+<!-- STACK -->
+<section class="section" id="stack" data-screen-label="03 Stack">
+  <div class="section-label reveal">
+    <span>[ 03 / ARSENAL ]</span>
+    <span class="dim">// STACK OPERACIONAL</span>
+  </div>
+  <h2 class="section-title reveal">
+    <span class="stroke">FERRAMENTAS</span><br>DE <span class="hl">GUERRA</span>
+  </h2>
+
+  <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: rgba(232,225,211,0.08); border: 1px solid rgba(232,225,211,0.08);" id="stack-grid">
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 01</span>
+        <span style="color:var(--accent);">LANG</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">PYTHON</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// core engine</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 02</span>
+        <span style="color:var(--accent);">RUNTIME</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">NODE.JS</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// backend</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 03</span>
+        <span style="color:var(--accent);">FRONT</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">REACT</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// ui layer</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 04</span>
+        <span style="color:var(--accent);">FRAMEWORK</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">NEXT.JS</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// ssr + edge</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 05</span>
+        <span style="color:var(--accent);">LLM</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">OPENAI</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// gpt-4+ agents</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 06</span>
+        <span style="color:var(--accent);">LLM</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">CLAUDE</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// anthropic</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 07</span>
+        <span style="color:var(--accent);">FLOW</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">N8N</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// automation</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 08</span>
+        <span style="color:var(--accent);">FLOW</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">MAKE</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// integrations</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 09</span>
+        <span style="color:var(--accent);">DB</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">SUPABASE</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// postgres + auth</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 10</span>
+        <span style="color:var(--accent);">DEPLOY</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">VERCEL</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// edge hosting</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 11</span>
+        <span style="color:var(--accent);">CHANNEL</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">WHATSAPP</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// cloud api</div>
+      </div>
+    </div>
+  
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;" onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// 12</span>
+        <span style="color:var(--accent);">PAY</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">STRIPE</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">// billing</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="section" id="projects" data-screen-label="04 Projects">
+  <div class="section-label reveal">
+    <span>[ 04 / DOSSIÊ ]</span>
+    <span class="dim">// OPERAÇÕES CONCLUÍDAS</span>
+  </div>
+  <h2 class="section-title reveal">
+    <span class="hl">PROJETOS</span><br><span class="stroke">EM CAMPO</span>
+  </h2>
+
+  <div class="projects">
+    <article class="project wide reveal">
+      <div class="project-meta">
+        <span>// CASE_001 · 2025</span>
+        <span class="status-ok">DEPLOYED</span>
+      </div>
+      <h3 class="project-title">AGENTE DE ATENDIMENTO 24/7</h3>
+      <p class="project-desc">
+        IA que atende, qualifica e agenda pelo WhatsApp. Reduziu em 68% o tempo médio
+        de resposta e liberou o time comercial pra focar em fechamento.
+      </p>
+      <div class="project-tags">
+        <span>OpenAI</span><span>n8n</span><span>WhatsApp Cloud API</span><span>Supabase</span>
+      </div>
+    </article>
+
+    <article class="project reveal">
+      <div class="project-meta">
+        <span>// CASE_002 · 2025</span>
+        <span class="status-ok">DEPLOYED</span>
+      </div>
+      <h3 class="project-title">PIPELINE DE CONTEÚDO</h3>
+      <p class="project-desc">
+        Automação que pega briefs em planilha, gera drafts com IA e publica em blog,
+        LinkedIn e newsletter — com aprovação humana no meio.
+      </p>
+      <div class="project-tags"><span>Claude</span><span>Make</span><span>Notion</span></div>
+    </article>
+
+    <article class="project reveal">
+      <div class="project-meta">
+        <span>// CASE_003 · 2025</span>
+        <span class="status-ok">DEPLOYED</span>
+      </div>
+      <h3 class="project-title">LANDING PAGE DE LANÇAMENTO</h3>
+      <p class="project-desc">
+        Página de captura construída em 4 dias pra infoproduto que fez 7 dígitos no
+        primeiro mês. Copy, design e tracking ponta a ponta.
+      </p>
+      <div class="project-tags"><span>Next.js</span><span>Framer Motion</span><span>GA4</span></div>
+    </article>
+
+    <article class="project reveal">
+      <div class="project-meta">
+        <span>// CASE_004 · 2024</span>
+        <span class="status-ok">DEPLOYED</span>
+      </div>
+      <h3 class="project-title">HUB DE INTEGRAÇÕES</h3>
+      <p class="project-desc">
+        Middleware que conecta CRM, financeiro e e-commerce. Sincronismo em tempo real,
+        sem planilha manual, sem equipe de suporte apagando incêndio.
+      </p>
+      <div class="project-tags"><span>Node</span><span>Webhooks</span><span>Postgres</span></div>
+    </article>
+
+    <article class="project reveal">
+      <div class="project-meta">
+        <span>// CASE_005 · 2024</span>
+        <span class="status-ok">DEPLOYED</span>
+      </div>
+      <h3 class="project-title">DASHBOARD TÁTICO</h3>
+      <p class="project-desc">
+        Painel em tempo real pra diretoria enxergar métricas críticas sem depender
+        do time de dados. Atualização automática a cada 5 minutos.
+      </p>
+      <div class="project-tags"><span>React</span><span>BigQuery</span><span>Metabase</span></div>
+    </article>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="section" id="process" data-screen-label="05 Process">
+  <div class="section-label reveal">
+    <span>[ 05 / PROTOCOLO ]</span>
+    <span class="dim">// COMO EU OPERO</span>
+  </div>
+  <h2 class="section-title reveal">
+    <span class="stroke">PROTOCOLO</span><br>DE <span class="hl">EXECUÇÃO</span>
+  </h2>
+
+  <div class="process">
+    <div class="step reveal">
+      <div class="step-num">01</div>
+      <h3 class="step-title">DIAGNÓSTICO</h3>
+      <p class="step-desc">
+        Call rápida, mapa do problema real — não do que você acha que é o problema.
+        Saio com escopo, prazo e preço.
+      </p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">02</div>
+      <h3 class="step-title">PROTÓTIPO</h3>
+      <p class="step-desc">
+        Em 48h você tem algo rodando pra tocar com a mão. A velocidade é a melhor
+        forma de descobrir se a ideia presta.
+      </p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">03</div>
+      <h3 class="step-title">EXECUÇÃO</h3>
+      <p class="step-desc">
+        Sprints semanais, demos toda sexta. Você vê o progresso e ajusta a rota
+        enquanto eu construo, não depois.
+      </p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">04</div>
+      <h3 class="step-title">HANDOFF</h3>
+      <p class="step-desc">
+        Entrega com documentação, acessos e treinamento. Suporte por 30 dias.
+        Depois disso, contrato de manutenção se quiser.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section" id="about" data-screen-label="06 About">
+  <div class="section-label reveal">
+    <span>[ 06 / OPERADOR ]</span>
+    <span class="dim">// QUEM TÁ POR TRÁS</span>
+  </div>
+  <h2 class="section-title reveal">
+    QUEM É <span class="hl">ISAAC</span>
+  </h2>
+
+  <div class="about">
+    <div class="about-text reveal">
+      <p>
+        Passei a última década construindo software pra empresas que precisavam
+        resolver problema <strong>pra ontem</strong>. Do call center à fintech,
+        do e-commerce ao SaaS.
+      </p>
+      <p>
+        Hoje, com IA, dá pra fazer em dias o que antes levava trimestres. E é aí
+        que eu entro: transformo ideias em sistemas que rodam, vendem e escalam —
+        sem enrolação.
+      </p>
+      <p>
+        Se você chegou até aqui, provavelmente já entendeu que <strong>velocidade
+        é a única vantagem competitiva real</strong>. Bora construir?
+      </p>
+    </div>
+
+    <div class="about-card reveal">
+      <div class="avatar">
+        <img src="isaac.png" alt="Isaac Souza — ISLAB.AI" />
+        <span class="avatar-label">// OPERATOR.ISAAC_SOUZA</span>
+      </div>
+      <div class="dossier-row"><span class="k">Codinome</span><span class="v">Isaac <span class="hl">"islab"</span> Souza</span></div>
+      <div class="dossier-row"><span class="k">Função</span><span class="v">AI Engineer / Operador Solo</span></div>
+      <div class="dossier-row"><span class="k">Base</span><span class="v">São Paulo — <span class="hl">BR</span></span></div>
+      <div class="dossier-row"><span class="k">Anos em campo</span><span class="v"><span class="hl">10+</span></span></div>
+      <div class="dossier-row"><span class="k">Especialidades</span><span class="v">IA · Automação · Vibe Coding</span></div>
+      <div class="dossier-row"><span class="k">Status</span><span class="v hl">● ACEITANDO NOVOS PROJETOS</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final" id="contact" data-screen-label="07 Contact">
+  <div class="section-label reveal" style="justify-content:center;">
+    <span>[ 07 / TRANSMIT ]</span>
+    <span class="dim">// ABRIR CANAL</span>
+  </div>
+
+  <h2 class="final-title reveal">
+    <span class="stroke">BORA</span><br>
+    <span class="glitch" data-text="CONSTRUIR">CONSTRUIR</span><br>
+    <span class="hl">JUNTOS.</span>
+  </h2>
+
+  <p class="final-sub reveal">
+    Clique no botão abaixo e me chama no WhatsApp. Primeiro call é de graça —
+    saio com um plano concreto pro seu problema, mesmo que a gente não feche.
+  </p>
+
+  <a href="https://wa.me/5528992757237?text=Oi%20Isaac!%20Vi%20sua%20landing%20da%20ISLAB.AI%20e%20quero%20conversar." class="big-btn reveal" target="_blank" rel="noopener">
+    <span class="icon">▶</span>
+    <span>FALAR NO WHATSAPP</span>
+    <span class="arrow">→</span>
+  </a>
+
+  <div style="margin-top: 60px; font-family:'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-dim); letter-spacing: 0.15em; text-transform:uppercase;">
+    ou mande e-mail: <a href="mailto:contato@islab.ai" style="color:var(--accent); text-decoration:none;">contato@islab.ai</a>
+  </div>
+</section>
+
+<footer>
+  <div>// ISLAB.AI <span class="hl">©</span> 2026 · ISAAC SOUZA</div>
+  <div>BUILT WITH <span class="hl">♥</span> + CAFEÍNA EM SÃO PAULO</div>
+  <div>SESSION_ID: <span class="hl" id="sess-id">0xEC84E251</span></div>
+</footer>
+
+<!-- STATUS BAR -->
+<div class="status">
+  <span>SIGNAL: <span class="ticker">████████</span> STRONG</span>
+  <span class="ticker" id="ticker-msg" style="transition: opacity 0.2s; opacity: 1;">&gt; AGENDA 2026 · 3 VAGAS DESTE TRIMESTRE</span>
+  <span>FPS: <span class="ticker" id="fps">61</span></span>
+</div>
+
+<!-- CUSTOM CURSOR -->
+<div class="cursor" id="cursor" style="transform: translate(864px, 1.57947e-166px) translate(-50%, -50%);"></div>
+<div class="cursor-dot" id="cursor-dot" style="transform: translate(864px, 0px) translate(-50%, -50%);"></div>
+
+<!-- TWEAKS PANEL -->
+<div class="tweaks-panel open" id="tweaks-panel">
+  <h4>
+    TWEAKS
+    <span style="color:var(--ink-dim); font-family:'JetBrains Mono',monospace; font-size:10px;">v2.6.1</span>
+  </h4>
+  <div class="row">
+    <label>Cor de acento</label>
+    <select id="tk-accent">
+      <option value="cyan">Ciano neon (default)</option>
+      <option value="yellow">Amarelo hazard</option>
+      <option value="red">Vermelho perigo</option>
+    </select>
+  </div>
+  <div class="tog">
+    <span>Glitch</span>
+    <button id="tk-glitch" class="on">ON</button>
+  </div>
+  <div class="tog">
+    <span>Partículas</span>
+    <button id="tk-particles" class="on">ON</button>
+  </div>
+  <div class="tog">
+    <span>Cursor custom</span>
+    <button id="tk-cursor" class="on">ON</button>
+  </div>
+  <div class="tog">
+    <span>Scanlines</span>
+    <button id="tk-scan" class="on">ON</button>
+  </div>
+</div>
+
+<script>
+/* ========== CLOCK + SESSION ========== */
+(function(){
+  const pad = n => String(n).padStart(2,'0');
+  const el = document.getElementById('sys-time');
+  function tick(){
+    const d = new Date();
+    el.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+  tick(); setInterval(tick, 1000);
+  document.getElementById('sess-id').textContent =
+    '0x' + Math.floor(Math.random()*0xFFFFFFFF).toString(16).padStart(8,'0').toUpperCase();
+})();
+
+/* ========== CUSTOM CURSOR ========== */
+(function(){
+  const cur = document.getElementById('cursor');
+  const dot = document.getElementById('cursor-dot');
+  let mx=0, my=0, cx=0, cy=0;
+  window.addEventListener('mousemove', e=>{
+    mx = e.clientX; my = e.clientY;
+    dot.style.transform = `translate(${mx}px, ${my}px) translate(-50%,-50%)`;
+  });
+  function loop(){
+    cx += (mx - cx) * 0.18;
+    cy += (my - cy) * 0.18;
+    cur.style.transform = `translate(${cx}px, ${cy}px) translate(-50%,-50%)`;
+    requestAnimationFrame(loop);
+  }
+  loop();
+  // hover state
+  document.addEventListener('mouseover', e=>{
+    if(e.target.closest('a, button, .service, .project, .step')) cur.classList.add('hovering');
+    else cur.classList.remove('hovering');
+  });
+})();
+
+/* ========== PARTICLES ========== */
+(function(){
+  const c = document.getElementById('particles');
+  const ctx = c.getContext('2d');
+  let w, h, parts = [];
+  function size(){ w = c.width = innerWidth; h = c.height = innerHeight; }
+  size(); addEventListener('resize', size);
+  function accentColor(){
+    const a = document.body.getAttribute('data-accent');
+    return a==='yellow' ? '252,238,10' : a==='red' ? '255,46,61' : '0,240,255';
+  }
+  function spawn(){
+    parts = [];
+    const count = innerWidth < 700 ? 40 : 90;
+    for(let i=0;i<count;i++){
+      parts.push({
+        x: Math.random()*w, y: Math.random()*h,
+        vx: (Math.random()-0.5)*0.3,
+        vy: (Math.random()-0.5)*0.3,
+        r: Math.random()*1.5 + 0.3,
+        a: Math.random()*0.5 + 0.1
+      });
+    }
+  }
+  spawn(); addEventListener('resize', spawn);
+  let last = performance.now(), frames=0, fpsEl=document.getElementById('fps'), lastFps=performance.now();
+  function frame(t){
+    frames++;
+    if(t - lastFps > 1000){ fpsEl.textContent = frames; frames=0; lastFps=t; }
+    ctx.clearRect(0,0,w,h);
+    if(document.body.getAttribute('data-particles') !== 'false'){
+      const col = accentColor();
+      for(const p of parts){
+        p.x += p.vx; p.y += p.vy;
+        if(p.x<0) p.x=w; if(p.x>w) p.x=0;
+        if(p.y<0) p.y=h; if(p.y>h) p.y=0;
+        ctx.fillStyle = `rgba(${col},${p.a})`;
+        ctx.fillRect(p.x, p.y, p.r, p.r);
+      }
+      // connect close particles with lines
+      for(let i=0;i<parts.length;i++){
+        for(let j=i+1;j<parts.length;j++){
+          const dx = parts[i].x-parts[j].x, dy = parts[i].y-parts[j].y;
+          const d = dx*dx + dy*dy;
+          if(d < 9000){
+            ctx.strokeStyle = `rgba(${col},${0.08*(1-d/9000)})`;
+            ctx.lineWidth=0.5;
+            ctx.beginPath();
+            ctx.moveTo(parts[i].x, parts[i].y);
+            ctx.lineTo(parts[j].x, parts[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ========== TERMINAL TYPEWRITER ========== */
+(function(){
+  const body = document.getElementById('term-body');
+  const seq = [
+    {cls:'prompt', text:'$ islab --init'},
+    {cls:'', text:'Booting ISLAB.AI runtime v2.6.1 ...'},
+    {cls:'ok', text:'[OK] modules loaded: ai, automation, vibe-code'},
+    {cls:'prompt', text:'$ scan --services'},
+    {cls:'', text:'> 06 services detected'},
+    {cls:'ok', text:'[OK] ready for deployment'},
+    {cls:'prompt', text:'$ connect --operator isaac'},
+    {cls:'', text:'authenticating ...'},
+    {cls:'ok', text:'[AUTH] welcome, operator.'},
+    {cls:'prompt', text:'$ await client --signal strong'},
+    {cls:'', text:'listening on channel <span style="color:var(--yellow)">#whatsapp</span> ...'}
+  ];
+  let i=0, j=0;
+  const lineEls = [];
+  function typeChar(){
+    if(i >= seq.length){
+      // add blinking cursor to last line
+      const last = lineEls[lineEls.length-1];
+      if(last && !last.classList.contains('cursor-blink')) last.classList.add('cursor-blink');
+      return;
+    }
+    if(!lineEls[i]){
+      const d = document.createElement('div');
+      d.className = 'line ' + seq[i].cls;
+      body.appendChild(d);
+      lineEls[i] = d;
+      body.scrollTop = body.scrollHeight;
+    }
+    const line = lineEls[i];
+    const full = seq[i].text;
+    // handle html spans
+    if(full.indexOf('<') !== -1){
+      // type char by char but render html at end
+      if(j < full.replace(/<[^>]+>/g,'').length){
+        const plain = full.replace(/<[^>]+>/g,'');
+        line.textContent = plain.slice(0, j+1);
+        j++;
+        setTimeout(typeChar, 22);
+      } else {
+        line.innerHTML = full;
+        i++; j=0;
+        setTimeout(typeChar, 260);
+      }
+    } else {
+      if(j < full.length){
+        line.textContent = full.slice(0, j+1);
+        j++;
+        setTimeout(typeChar, 22);
+      } else {
+        i++; j=0;
+        setTimeout(typeChar, 260);
+      }
+    }
+  }
+  setTimeout(typeChar, 800);
+})();
+
+/* ========== STACK GRID ========== */
+(function(){
+  const grid = document.getElementById('stack-grid');
+  const items = [
+    {n:'PYTHON',   t:'LANG', meta:'// core engine'},
+    {n:'NODE.JS',  t:'RUNTIME', meta:'// backend'},
+    {n:'REACT',    t:'FRONT', meta:'// ui layer'},
+    {n:'NEXT.JS',  t:'FRAMEWORK', meta:'// ssr + edge'},
+    {n:'OPENAI',   t:'LLM', meta:'// gpt-4+ agents'},
+    {n:'CLAUDE',   t:'LLM', meta:'// anthropic'},
+    {n:'N8N',      t:'FLOW', meta:'// automation'},
+    {n:'MAKE',     t:'FLOW', meta:'// integrations'},
+    {n:'SUPABASE', t:'DB', meta:'// postgres + auth'},
+    {n:'VERCEL',   t:'DEPLOY', meta:'// edge hosting'},
+    {n:'WHATSAPP', t:'CHANNEL', meta:'// cloud api'},
+    {n:'STRIPE',   t:'PAY', meta:'// billing'}
+  ];
+  grid.innerHTML = items.map((it,idx)=>`
+    <div class="reveal" style="background: var(--bg); padding: 28px; min-height: 160px; position:relative; display:flex; flex-direction:column; justify-content:space-between; transition:0.2s;"
+         onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='var(--bg)'">
+      <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color: var(--ink-dim); letter-spacing:0.15em;">
+        <span>// ${String(idx+1).padStart(2,'0')}</span>
+        <span style="color:var(--accent);">${it.t}</span>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:36px; line-height:1; margin-bottom:6px;">${it.n}</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--ink-dim);">${it.meta}</div>
+      </div>
+    </div>
+  `).join('');
+})();
+
+/* ========== REVEAL ON SCROLL ========== */
+(function(){
+  const io = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in'); });
+  }, {threshold: 0.1});
+  document.querySelectorAll('.reveal').forEach(el=> io.observe(el));
+})();
+
+/* ========== TICKER ROTATE ========== */
+(function(){
+  const msgs = [
+    '> TUDO OPERACIONAL · PRONTO PRA NOVAS MISSÕES',
+    '> WHATSAPP ABERTO · RESPOSTA EM < 2H',
+    '> BRIEFING GRATUITO · CALL DE 30MIN',
+    '> AGENDA 2026 · 3 VAGAS DESTE TRIMESTRE',
+    '> VIBE CODING · PROTÓTIPOS EM 48H'
+  ];
+  let i=0; const el = document.getElementById('ticker-msg');
+  setInterval(()=>{
+    i = (i+1) % msgs.length;
+    el.style.opacity = 0;
+    setTimeout(()=>{ el.textContent = msgs[i]; el.style.opacity = 1; }, 200);
+  }, 4500);
+  el.style.transition = 'opacity 0.2s';
+})();
+
+/* ========== TWEAKS / EDIT MODE ========== */
+(function(){
+  const panel = document.getElementById('tweaks-panel');
+  const body = document.body;
+
+  // apply defaults from TWEAKS
+  function apply(t){
+    body.setAttribute('data-accent', t.accent || 'cyan');
+    body.setAttribute('data-glitch', String(t.glitch));
+    body.setAttribute('data-particles', String(t.particles));
+    body.setAttribute('data-cursor', String(t.customCursor));
+    body.setAttribute('data-scan', String(t.scanlines));
+
+    document.getElementById('tk-accent').value = t.accent || 'cyan';
+    for(const [k, btnId] of [['glitch','tk-glitch'],['particles','tk-particles'],['customCursor','tk-cursor'],['scanlines','tk-scan']]){
+      const btn = document.getElementById(btnId);
+      btn.classList.toggle('on', !!t[k]);
+      btn.textContent = t[k] ? 'ON' : 'OFF';
+    }
+  }
+  apply(TWEAKS);
+
+  function push(edits){
+    Object.assign(TWEAKS, edits);
+    try{ window.parent.postMessage({type:'__edit_mode_set_keys', edits}, '*'); }catch(e){}
+  }
+
+  document.getElementById('tk-accent').addEventListener('change', e=>{
+    body.setAttribute('data-accent', e.target.value);
+    push({accent: e.target.value});
+  });
+  function bindTog(btnId, key, attr){
+    const btn = document.getElementById(btnId);
+    btn.addEventListener('click', ()=>{
+      const nv = !(TWEAKS[key]);
+      btn.classList.toggle('on', nv);
+      btn.textContent = nv ? 'ON' : 'OFF';
+      body.setAttribute(attr, String(nv));
+      push({[key]: nv});
+    });
+  }
+  bindTog('tk-glitch','glitch','data-glitch');
+  bindTog('tk-particles','particles','data-particles');
+  bindTog('tk-cursor','customCursor','data-cursor');
+  bindTog('tk-scan','scanlines','data-scan');
+
+  // host protocol — register listener FIRST
+  window.addEventListener('message', (e)=>{
+    const d = e.data || {};
+    if(d.type === '__activate_edit_mode') panel.classList.add('open');
+    if(d.type === '__deactivate_edit_mode') panel.classList.remove('open');
+  });
+  try{ window.parent.postMessage({type:'__edit_mode_available'}, '*'); }catch(e){}
+})();
+</script>
+
+
+</body></html>
